@@ -2,8 +2,11 @@
 
 from config import *
 from sprites import *
+from dialogue import *
 import sys
 import pygame
+
+pygame.font.init()
 
 class Spritesheet:
     def __init__(self, path):
@@ -14,6 +17,28 @@ class Spritesheet:
         sprite.blit(self.spritesheet, (0,0), (x,y,width,height))
         sprite.set_colorkey(BLACK)
         return sprite
+    
+class Camera:
+    def __init__(self, width, height):
+        self.camera = pygame.Rect(0, 0, width, height)
+        self.width = width
+        self.height = height
+
+    def apply(self, entity):
+        return entity.rect.move(self.camera.topleft)
+
+    def update(self, target):
+        x = -target.rect.centerx + int(win_width / 2)
+        y = -target.rect.centery + int(win_height / 2)
+
+        # Limit scrolling to map size
+        x = min(0, x)  # Left
+        y = min(0, y)  # Top
+        x = max(-(self.width - win_width), x)  # Right
+        y = max(-(self.height - win_height), y)  # Bottom
+
+        self.camera = pygame.Rect(x, y, self.width, self.height)
+        
 
 
 class Game:
@@ -24,6 +49,9 @@ class Game:
         self.player_spritesheet = Spritesheet('assets/sprites/Female 03-3.png')
         self.npc_spritesheet = Spritesheet('assets/sprites/Female 09-2.png')
         self.running = True
+        self.npc_collided =False
+        self.scenery_collided = False
+        self.dialogue = DialogueBox(self)
         
         
         
@@ -55,21 +83,38 @@ class Game:
     def create(self):
         self.all_sprites = pygame.sprite.LayeredUpdates()
         self.scenery = pygame.sprite.LayeredUpdates()
+        self.npcs = pygame.sprite.LayeredUpdates()
         self.createTileMap()
+        
+        for sprite in self.all_sprites:
+            if isinstance(sprite, Player):
+                self.player = sprite
+    
+        self.camera = Camera(len(tilemap[0]) * tileSize, len(tilemap) * tileSize)
     
     def update(self):
         self.all_sprites.update()
+        self.camera.update(self.player)
     
     def events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running=False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE and self.dialogue.visible:
+                    self.dialogue.hide()
     
     def draw(self):
         self.screen.fill(BLACK)
-        self.all_sprites.draw(self.screen)
+        for sprite in self.all_sprites:
+            self.screen.blit(sprite.image, self.camera.apply(sprite))
+        self.dialogue.draw()
         self.clock.tick(FPS)
         pygame.display.update()
+
+
+
+
     
     def main(self):
         while self.running:

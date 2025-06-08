@@ -1,8 +1,14 @@
 
 from config import *
+from dialogue import *
 import pygame
 import random
 import math
+import json
+
+
+with open("dialogue.json") as f:
+    npc_dialogue = json.load(f)
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
@@ -55,7 +61,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.x = self.rect.x + self.x_change
         self.rect.y = self.rect.y + self.y_change
         self.collide_scenery()
-        
+        self.collide_npcs()        
 
         self.x_change=0
         self.y_change=0
@@ -120,28 +126,52 @@ class Player(pygame.sprite.Sprite):
                     
     def collide_scenery(self):
         pressed= pygame.key.get_pressed()
-        collide=pygame.sprite.spritecollide(self, self.game.scenery, False)
+        collide=pygame.sprite.spritecollide(self, self.game.scenery, False, pygame.sprite.collide_rect_ratio(0.85))
         if collide:
+            self.game.scenery_collided=True
             if pressed[pygame.K_LEFT]:
                 self.rect.x += player_steps
-            if pressed[pygame.K_RIGHT]:
+            elif pressed[pygame.K_RIGHT]:
                 self.rect.x -= player_steps
-            if pressed[pygame.K_UP]:
+            elif pressed[pygame.K_UP]:
                 self.rect.y += player_steps
-            if pressed[pygame.K_DOWN]:
+            elif pressed[pygame.K_DOWN]:
                 self.rect.y -= player_steps
+        else:
+            self.game.scenery_collided=False
+                
+    def collide_npcs(self):
+        pressed= pygame.key.get_pressed()
+        collide=pygame.sprite.spritecollide(self, self.game.npcs, False, pygame.sprite.collide_rect_ratio(0.85))
+        if collide:
+            self.game.dialogue.show("Hello there! I'm an NPC.")
+            self.game.npc_collided=True
+            if pressed[pygame.K_LEFT]:
+                self.rect.x += player_steps
+            elif pressed[pygame.K_RIGHT]:
+                self.rect.x -= player_steps
+            elif pressed[pygame.K_UP]:
+                self.rect.y += player_steps
+            elif pressed[pygame.K_DOWN]:
+                self.rect.y -= player_steps
+        else:
+            self.game.npc_collided=False
+        for npc in collide:
+           if npc.name in npc_dialogue:
+            self.game.dialogue.show(npc_dialogue[npc.name][0])             
+
             
 class NPC(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
         
         self.game=game
         self._layer=player_layer
-        self.groups = self.game.all_sprites
+        self.groups = self.game.all_sprites, self.game.npcs
         pygame.sprite.Sprite.__init__(self, self.groups)
         self.x = x*tileSize
         self.y = y*tileSize
         
-        
+        self.name = "Alice"
         self.width  = tileSize
         self.height = tileSize
         
@@ -262,15 +292,15 @@ class NPC(pygame.sprite.Sprite):
         
     def collide_scenery(self):
         pressed= pygame.key.get_pressed()
-        collide=pygame.sprite.spritecollide(self, self.game.scenery, False)
+        collide=pygame.sprite.spritecollide(self, self.game.scenery, False, pygame.sprite.collide_rect_ratio(0.85))
         if collide:
             if self.direction == "left":
                 self.rect.x += npc_steps
-            if self.direction == "right":
+            elif self.direction == "right":
                 self.rect.x -= npc_steps
-            if self.direction == "up":
+            elif self.direction == "up":
                 self.rect.y += npc_steps
-            if self.direction == "down":
+            elif self.direction == "down":
                 self.rect.y -= npc_steps        
         
 class Block(pygame.sprite.Sprite):
