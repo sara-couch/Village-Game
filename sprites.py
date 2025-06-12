@@ -144,7 +144,8 @@ class Player(pygame.sprite.Sprite):
         pressed= pygame.key.get_pressed()
         collide=pygame.sprite.spritecollide(self, self.game.npcs, False, pygame.sprite.collide_rect_ratio(0.85))
         if collide:
-            self.game.dialogue.show("Hello there! I'm an NPC.")
+            
+            #self.game.dialogue.show("Hello there! I'm an NPC.")
             self.game.npc_collided=True
             if pressed[pygame.K_LEFT]:
                 self.rect.x += player_steps
@@ -162,25 +163,35 @@ class Player(pygame.sprite.Sprite):
 
             
 class NPC(pygame.sprite.Sprite):
-    def __init__(self, game, x, y):
+    def __init__(self, game, x, y, name="NPC"):
         
         self.game=game
+        self.name = name
         self._layer=player_layer
         self.groups = self.game.all_sprites, self.game.npcs
         pygame.sprite.Sprite.__init__(self, self.groups)
         self.x = x*tileSize
         self.y = y*tileSize
         
-        self.name = "Alice"
+
         self.width  = tileSize
         self.height = tileSize
         
         self.x_change=0
         self.y_change=0
         
-        self.animationCounter = 0       
+        self.animationCounter = 0
         
-        self.image = self.game.npc_spritesheet.get_image(0, 0, self.width, self.height)
+        
+        self.character_index=0
+        if name == "Alice":
+            self.character_index=0
+        elif name == "Samuel":
+            self.character_index=96
+            
+            
+            
+        self.image = self.game.npc_spritesheet.get_image(self.character_index, 0, self.width, self.height)
         self.rect = self.image.get_rect()
         self.rect.x = self.x
         self.rect.y = self.y 
@@ -235,27 +246,27 @@ class NPC(pygame.sprite.Sprite):
         
     def animation(self):
         
-        self.downAnimation = [self.game.npc_spritesheet.get_image(0,0, self.width, self.height),
-                         self.game.npc_spritesheet.get_image(32,0, self.width, self.height),
-                         self.game.npc_spritesheet.get_image(64,0, self.width, self.height),]
+        self.downAnimation = [self.game.npc_spritesheet.get_image(self.character_index,0, self.width, self.height),
+                         self.game.npc_spritesheet.get_image((self.character_index+32),0, self.width, self.height),
+                         self.game.npc_spritesheet.get_image((self.character_index+64),0, self.width, self.height),]
         
-        self.leftAnimation = [self.game.npc_spritesheet.get_image(0,32, self.width, self.height),
-                         self.game.npc_spritesheet.get_image(32,32, self.width, self.height),
-                         self.game.npc_spritesheet.get_image(64,32, self.width, self.height),]
+        self.leftAnimation = [self.game.npc_spritesheet.get_image(self.character_index,32, self.width, self.height),
+                         self.game.npc_spritesheet.get_image((self.character_index+32),32, self.width, self.height),
+                         self.game.npc_spritesheet.get_image((self.character_index+64),32, self.width, self.height),]
         
-        self.rightAnimation = [self.game.npc_spritesheet.get_image(0,64, self.width, self.height),
-                         self.game.npc_spritesheet.get_image(32,64, self.width, self.height),
-                         self.game.npc_spritesheet.get_image(64,64, self.width, self.height),]
+        self.rightAnimation = [self.game.npc_spritesheet.get_image(self.character_index,64, self.width, self.height),
+                         self.game.npc_spritesheet.get_image((self.character_index+32),64, self.width, self.height),
+                         self.game.npc_spritesheet.get_image((self.character_index+64),64, self.width, self.height),]
         
-        self.upAnimation = [self.game.npc_spritesheet.get_image(0,96, self.width, self.height),
-                         self.game.npc_spritesheet.get_image(32,96, self.width, self.height),
-                         self.game.npc_spritesheet.get_image(64,96, self.width, self.height),]
+        self.upAnimation = [self.game.npc_spritesheet.get_image(self.character_index,96, self.width, self.height),
+                         self.game.npc_spritesheet.get_image((self.character_index+32),96, self.width, self.height),
+                         self.game.npc_spritesheet.get_image((self.character_index+64),96, self.width, self.height),]
         
         
         
         if self.direction == "down":
             if self.y_change==0:
-                self.image = self.game.npc_spritesheet.get_image(0,0, self.width, self.height)
+                self.image = self.game.npc_spritesheet.get_image(self.character_index,0, self.width, self.height)
             else:
                 self.image = self.downAnimation[math.floor(self.animationCounter)]
                 self.animationCounter += 0.2
@@ -264,7 +275,7 @@ class NPC(pygame.sprite.Sprite):
                     
         if self.direction == "left":
             if self.x_change==0:
-                self.image = self.game.npc_spritesheet.get_image(0,32, self.width, self.height)
+                self.image = self.game.npc_spritesheet.get_image(self.character_index,32, self.width, self.height)
             else:
                 self.image = self.leftAnimation[math.floor(self.animationCounter)]
                 self.animationCounter += 0.2
@@ -274,7 +285,7 @@ class NPC(pygame.sprite.Sprite):
                     
         if self.direction == "right":
             if self.x_change==0:
-                self.image = self.game.npc_spritesheet.get_image(0,64, self.width, self.height)
+                self.image = self.game.npc_spritesheet.get_image(self.character_index,64, self.width, self.height)
             else:
                 self.image = self.rightAnimation[math.floor(self.animationCounter)]
                 self.animationCounter += 0.2
@@ -283,7 +294,7 @@ class NPC(pygame.sprite.Sprite):
 
         if self.direction == "up":
             if self.y_change==0:
-                self.image = self.game.npc_spritesheet.get_image(0,96, self.width, self.height)
+                self.image = self.game.npc_spritesheet.get_image(self.character_index,96, self.width, self.height)
             else:
                 self.image = self.upAnimation[math.floor(self.animationCounter)]
                 self.animationCounter += 0.2
@@ -475,6 +486,25 @@ class Vertical_Fence(pygame.sprite.Sprite):
         self.height = tileSize
         
         self.image = self.game.terrain_spritesheet.get_image(3,274, 10, 30)
+        self.rect = self.image.get_rect()
+        self.rect.x = self.x
+        self.rect.y = self.y
+        
+class Tree(pygame.sprite.Sprite):
+    def __init__(self, game, x, y):
+        
+        self.game=game
+        self._layer=blocks_layer
+        self.groups = self.game.all_sprites, self.game.scenery
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.x = x*tileSize
+        self.y = y*tileSize
+        
+        
+        self.width  = tileSize
+        self.height = tileSize
+        
+        self.image = self.game.terrain_spritesheet.get_image(80,256, self.width, self.height)
         self.rect = self.image.get_rect()
         self.rect.x = self.x
         self.rect.y = self.y

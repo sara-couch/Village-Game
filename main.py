@@ -47,7 +47,7 @@ class Game:
         self.clock = pygame.time.Clock()
         self.terrain_spritesheet = Spritesheet('assets/images/Overworld.png')
         self.player_spritesheet = Spritesheet('assets/sprites/Female 03-3.png')
-        self.npc_spritesheet = Spritesheet('assets/sprites/Female 09-2.png')
+        self.npc_spritesheet = Spritesheet('assets/sprites/Characters.png')
         self.running = True
         self.npc_collided =False
         self.scenery_collided = False
@@ -55,14 +55,19 @@ class Game:
         
         
         
+        
     def createTileMap(self):
+        
+        npc_positions = {
+            (17, 7): "Alice",
+            (36, 4): "Samuel"
+            }
+        
         for i, row in enumerate(tilemap):
             for j, column in enumerate(row):
                 Ground(self, j, i)
                 if column=='P':
                     Player(self, j, i)
-                if column=='N':
-                    NPC(self, j, i)
                 if column=='B':
                     Block(self, j, i)
                 if column=='W':
@@ -79,6 +84,12 @@ class Game:
                     Waterfall(self, j, i)
                 if column=='V':
                     Vertical_Fence(self, j, i)
+                if column=='T':
+                    Tree(self, j, i)
+                if column == 'N':
+                    name = npc_positions.get((j, i), "NPC")
+                    NPC(self, j, i, name=name)
+
     
     def create(self):
         self.all_sprites = pygame.sprite.LayeredUpdates()
